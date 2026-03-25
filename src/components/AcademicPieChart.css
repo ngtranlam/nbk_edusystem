@@ -1,0 +1,61 @@
+.academic-pie-chart {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  justify-content: center;
+}
+
+.pie-canvas-wrapper {
+  flex-shrink: 0;
+}
+
+.pie-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.legend-item:hover,
+.legend-item.legend-active {
+  background: #f3f4f6;
+  transform: translateX(4px);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.legend-item:hover .legend-dot,
+.legend-item.legend-active .legend-dot {
+  transform: scale(1.4);
+}
+
+.legend-label {
+  color: #666;
+  min-width: 50px;
+}
+
+.legend-value {
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.legend-percent {
+  font-size: 11px;
+  color: #999;
+}

@@ -1,0 +1,202 @@
+.student-watch-list {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.watch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.watch-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.watch-title-row h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.watch-update {
+  font-size: 11px;
+  color: #999;
+}
+
+.watch-filters {
+  display: flex;
+  gap: 6px;
+}
+
+.filter-btn {
+  border: none;
+  padding: 5px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #f3f4f6;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  background: #e5e7eb;
+}
+
+.filter-btn.active {
+  background: #1a1a2e;
+  color: white;
+}
+
+.filter-cao.active {
+  background: #ef4444;
+  color: white;
+}
+
+.filter-vua.active {
+  background: #f59e0b;
+  color: white;
+}
+
+.watch-table-wrapper {
+  overflow-y: auto;
+  flex: 1;
+  max-height: 320px;
+  scrollbar-width: thin;
+}
+
+.watch-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.watch-table thead th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 6px;
+  border-bottom: 1px solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 1;
+}
+
+.watch-row {
+  animation: rowFadeIn 0.3s ease forwards;
+  opacity: 0;
+}
+
+@keyframes rowFadeIn {
+  to { opacity: 1; }
+}
+
+.watch-row td {
+  padding: 10px 6px;
+  border-bottom: 1px solid #f8f8f8;
+  vertical-align: middle;
+}
+
+.watch-row:hover {
+  background: #fafafa;
+}
+
+.student-name {
+  font-weight: 600;
+  color: #1a1a2e;
+  font-size: 13px;
+}
+
+.student-class {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+}
+
+.badge-level {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.level-cao {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.level-vua {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.reason-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.reason-tag {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.tag-vang {
+  background: #fff3cd;
+  color: #b45309;
+}
+
+.tag-diem {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.tag-vipham {
+  background: #fce4ec;
+  color: #c62828;
+}
+
+.absence-count {
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.score-avg {
+  font-weight: 700;
+  color: #1a1a2e;
+  font-size: 14px;
+}
+
+.score-low {
+  color: #ef4444;
+}
+
+.btn-detail {
+  border: none;
+  background: none;
+  color: #0ea5e9;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.btn-detail:hover {
+  background: #f0f9ff;
+}
