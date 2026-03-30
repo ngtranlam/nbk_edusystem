@@ -1,61 +1,92 @@
 .academic-pie-chart {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
   justify-content: center;
+  padding: 8px 0;
 }
 
 .pie-canvas-wrapper {
   flex-shrink: 0;
+  position: relative;
 }
 
 .pie-legend {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
 }
 
-.legend-item {
+.legend-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1.5px solid transparent;
+  background: #fafafa;
+}
+
+.legend-card:hover,
+.legend-card.legend-card-active {
+  background: var(--seg-light, #f3f4f6);
+  border-color: var(--seg-color, #ddd);
+  transform: translateX(3px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.legend-card-top {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  padding: 4px 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.legend-item:hover,
-.legend-item.legend-active {
-  background: #f3f4f6;
-  transform: translateX(4px);
 }
 
 .legend-dot {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
+  border-radius: 3px;
   flex-shrink: 0;
   transition: transform 0.2s ease;
 }
 
-.legend-item:hover .legend-dot,
-.legend-item.legend-active .legend-dot {
-  transform: scale(1.4);
+.legend-card:hover .legend-dot,
+.legend-card.legend-card-active .legend-dot {
+  transform: scale(1.3);
+  border-radius: 50%;
 }
 
-.legend-label {
+.legend-card-label {
+  font-size: 12px;
   color: #666;
-  min-width: 50px;
+  flex: 1;
+  font-weight: 500;
 }
 
-.legend-value {
+.legend-card-value {
+  font-size: 15px;
   font-weight: 700;
   color: #1a1a2e;
 }
 
-.legend-percent {
+.legend-card-bar-track {
+  height: 4px;
+  background: #eee;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.legend-card-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.legend-card-pct {
   font-size: 11px;
   color: #999;
+  font-weight: 500;
 }

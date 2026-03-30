@@ -10,15 +10,15 @@ const Header: React.FC = () => {
         </div>
         <div className="header-info">
           <h1 className="header-title">THCS Nguyễn Bỉnh Khiêm</h1>
-          <p className="header-subtitle">Đề tài: Hệ thống quản lý giáo dục thông minh</p>
+          {/* <p className="header-subtitle">Hệ thống quản lý giáo dục thông minh</p> */}
         </div>
       </div>
       <div className="header-right">
-        <div className="header-user">
-          <div className="user-avatar">GV</div>
-          <div className="user-info">
-            <span className="user-name">Giáo viên</span>
-            <span className="user-role">GVCN</span>
+        <div className="header-contact">
+          <div className="contact-icon">📍</div>
+          <div className="contact-info">
+            <span className="contact-unit">Trường THCS Nguyễn Bỉnh Khiêm</span>
+            <span className="contact-location">Xã Cư M'gar, tỉnh Đắk Lắk</span>
           </div>
         </div>
       </div>

@@ -1,13 +1,19 @@
 import React, { useState, useMemo } from 'react';
 import { getStudentsToWatch } from '../data/realData';
+import { useData } from '../contexts/DataContext';
 import './StudentWatchList.css';
 
 type FilterType = 'all' | 'Cao' | 'Vừa';
 
-const StudentWatchList: React.FC = () => {
+interface StudentWatchListProps {
+  periodKey: string;
+}
+
+const StudentWatchList: React.FC<StudentWatchListProps> = ({ periodKey }) => {
+  const { data } = useData();
   const [filter, setFilter] = useState<FilterType>('all');
 
-  const allStudents = useMemo(() => getStudentsToWatch(), []);
+  const allStudents = useMemo(() => getStudentsToWatch(periodKey, data.periods), [periodKey, data.periods]);
 
   const filtered = filter === 'all'
     ? allStudents

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { getAvgScoreByClass } from '../data/realData';
+import { useData } from '../contexts/DataContext';
 import './MonthlyChart.css';
 
 // Color palette for classes within each grade
@@ -8,7 +9,12 @@ const CLASS_COLORS = [
   '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6',
 ];
 
-const MonthlyChart: React.FC = () => {
+interface MonthlyChartProps {
+  periodKey: string;
+}
+
+const MonthlyChart: React.FC<MonthlyChartProps> = ({ periodKey }) => {
+  const { data } = useData();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hoveredBar, setHoveredBar] = useState<{ lop: string; avg: number; x: number; y: number; w: number; h: number } | null>(null);
 
@@ -45,13 +51,13 @@ const MonthlyChart: React.FC = () => {
 
     const width = rect.width;
     const height = rect.height;
-    const padding = { top: 30, right: 10, bottom: 44, left: 40 };
+    const padding = { top: 20, right: 10, bottom: 40, left: 40 };
     const chartW = width - padding.left - padding.right;
     const chartH = height - padding.top - padding.bottom;
 
     ctx.clearRect(0, 0, width, height);
 
-    const data = getAvgScoreByClass();
+    const chartData = getAvgScoreByClass(periodKey, data.periods);
 
     // Determine Y axis range
     const minVal = 4;
@@ -76,12 +82,12 @@ const MonthlyChart: React.FC = () => {
     }
 
     // Divide chart into equal slots per grade, center bars within each slot
-    const numGrades = data.length;
+    const numGrades = chartData.length;
     const slotWidth = chartW / numGrades;
     const barGap = 4;
     const barHitAreas: any[] = [];
 
-    data.forEach((grade, gi) => {
+    chartData.forEach((grade: any, gi: number) => {
       const slotStartX = padding.left + gi * slotWidth;
       const slotCenterX = slotStartX + slotWidth / 2;
       const numBars = grade.classes.length;
@@ -96,7 +102,7 @@ const MonthlyChart: React.FC = () => {
       ctx.fillText(grade.khoi, slotCenterX, height - 6);
 
       // Draw bars for each class
-      grade.classes.forEach((cls, ci) => {
+      grade.classes.forEach((cls: any, ci: number) => {
         const val = cls.avg;
         const clampedVal = Math.max(minVal, Math.min(maxVal, val));
         const barH = ((clampedVal - minVal) / (maxVal - minVal)) * chartH;
@@ -165,7 +171,7 @@ const MonthlyChart: React.FC = () => {
     (canvas as any).__barHitAreas = barHitAreas;
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoveredBar]);
+  }, [hoveredBar, periodKey, data.periods]);
 
   return (
     <div className="monthly-chart">

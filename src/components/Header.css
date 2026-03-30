@@ -52,8 +52,11 @@
 .header-subtitle {
   font-size: 11px;
   margin: 0;
-  opacity: 0.9;
+  margin-top: 2px;
+  opacity: 0.95;
   font-weight: 500;
+  line-height: 1.4;
+  max-width: 700px;
 }
 
 .header-semester-badge {
@@ -111,44 +114,38 @@
   50% { opacity: 0.6; transform: scale(1.2); }
 }
 
-.header-user {
+.header-contact {
   display: flex;
   align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  padding: 4px 8px;
+  gap: 10px;
+  padding: 6px 12px;
   border-radius: 12px;
-  transition: background 0.2s;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.header-user:hover {
-  background: rgba(255, 255, 255, 0.15);
+.contact-icon {
+  font-size: 20px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
-.user-avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-}
-
-.user-info {
+.contact-info {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
-.user-name {
-  font-size: 13px;
+.contact-unit {
+  font-size: 12px;
   font-weight: 600;
+  line-height: 1.2;
 }
 
-.user-role {
+.contact-location {
   font-size: 10px;
-  opacity: 0.8;
+  opacity: 0.85;
+  font-weight: 500;
+  line-height: 1.2;
 }

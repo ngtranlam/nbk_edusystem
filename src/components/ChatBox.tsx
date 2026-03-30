@@ -1,12 +1,23 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ChatMessage } from '../types';
 import { sendMessage } from '../services/geminiService';
+import { parseFile } from '../services/fileParser';
+import { useData } from '../contexts/DataContext';
 import Icon from './Icon';
+import DataManagerModal from './DataManagerModal';
 import './ChatBox.css';
 
+const ACCEPTED_FORMATS = '.xls,.xlsx,.csv';
+
 const ChatBox: React.FC = () => {
+  const { applyUpload } = useData();
+  const [showDataManager, setShowDataManager] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -89,6 +100,58 @@ const ChatBox: React.FC = () => {
     }
   };
 
+  const handleUploadClick = () => {
+    uploadInputRef.current?.click();
+  };
+
+  const showToast = useCallback((message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setPendingFiles(Array.from(files));
+    e.target.value = '';
+  }, []);
+
+  const handleConfirmUpload = useCallback(async () => {
+    if (pendingFiles.length === 0) return;
+    const filesToProcess = [...pendingFiles];
+    setPendingFiles([]);
+    setUploading(true);
+    let successCount = 0;
+    let failCount = 0;
+    for (const file of filesToProcess) {
+      try {
+        const result = await parseFile(file);
+        if (result.fileType !== 'unknown') {
+          const pk = (result.fileType === 'scores' || result.fileType === 'classification')
+            ? `upload_${Date.now()}` : undefined;
+          await applyUpload(result, pk, file.name.replace(/\.[^.]+$/, ''));
+          successCount++;
+        } else {
+          failCount++;
+        }
+      } catch (err) {
+        console.error('Upload error:', err);
+        failCount++;
+      }
+    }
+    setUploading(false);
+    if (successCount > 0) {
+      showToast(`Đã tải lên ${successCount} file thành công`, 'success');
+    }
+    if (failCount > 0) {
+      showToast(`${failCount} file không nhận diện được`, 'error');
+    }
+  }, [pendingFiles, applyUpload, showToast]);
+
+  const handleCancelUpload = useCallback(() => {
+    setPendingFiles([]);
+  }, []);
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   };
@@ -109,8 +172,63 @@ const ChatBox: React.FC = () => {
             </span>
           </div>
         </div>
-        <button className="chatbox-menu-btn"><Icon name="settings" size={18} /></button>
+        <div className="chatbox-header-actions">
+          <button
+            className={`chatbox-action-btn ${uploading ? 'uploading' : ''}`}
+            onClick={handleUploadClick}
+            title="Tải lên dữ liệu"
+            disabled={uploading}
+          >
+            {uploading ? <span className="btn-spinner" /> : <Icon name="upload" size={16} />}
+          </button>
+          <button
+            className="chatbox-action-btn"
+            onClick={() => setShowDataManager(true)}
+            title="Quản lý dữ liệu"
+          >
+            <Icon name="database" size={16} />
+          </button>
+        </div>
+        <input
+          ref={uploadInputRef}
+          type="file"
+          accept={ACCEPTED_FORMATS}
+          multiple
+          onChange={handleFileChange}
+          style={{ display: 'none' }}
+        />
       </div>
+
+      <DataManagerModal isOpen={showDataManager} onClose={() => setShowDataManager(false)} />
+
+      {/* Upload confirm popup */}
+      {pendingFiles.length > 0 && (
+        <div className="upload-confirm-overlay" onClick={handleCancelUpload}>
+          <div className="upload-confirm" onClick={e => e.stopPropagation()}>
+            <div className="upload-confirm-icon">
+              <Icon name="upload" size={20} />
+            </div>
+            <p className="upload-confirm-text">Tải lên {pendingFiles.length} file?</p>
+            <div className="upload-confirm-files">
+              {pendingFiles.map((f, i) => (
+                <span key={i} className="upload-confirm-file">{f.name}</span>
+              ))}
+            </div>
+            <div className="upload-confirm-actions">
+              <button className="upload-confirm-cancel" onClick={handleCancelUpload}>Huỷ</button>
+              <button className="upload-confirm-ok" onClick={handleConfirmUpload}>Tải lên</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upload toast notification */}
+      {toast && (
+        <div className={`upload-toast ${toast.type}`}>
+          <Icon name={toast.type === 'success' ? 'sparkles' : 'alert'} size={14} />
+          <span>{toast.message}</span>
+        </div>
+      )}
 
       <div className="chatbox-messages">
         {messages.map((msg) => (

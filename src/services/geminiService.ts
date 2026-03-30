@@ -3,24 +3,55 @@ import extractedData from '../data/extracted_data.json';
 
 // Read API key from environment variable (set in Render dashboard)
 // Fallback to hardcoded key for local development
-const API_KEY = process.env.REACT_APP_GEMINI_API_KEY || 'AIzaSyA0cQlKdvxj4GcYVx-cq3WSVRwrmJzlzpk';
+const API_KEY = process.env.REACT_APP_GEMINI_API_KEY || 'AIzaSyDeinwqke3doGCKwX6-OfpEXqHvARQYFDs';
 const MODEL = 'gemini-3-flash-preview';
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
+
+// ============================================================
+// DYNAMIC DATA SOURCE — can be updated by uploads
+// ============================================================
+
+let dynamicData: any = null;
+
+export function updateAIData(schoolData: any): void {
+  dynamicData = schoolData;
+}
+
+function getData(): any {
+  if (dynamicData) {
+    // Merge: use default periods + uploaded periods, uploaded teachers if available
+    const base = extractedData as any;
+    const allScores = dynamicData.periods?.flatMap((p: any) => p.scores || []) || base.scores || [];
+    const allSummaries = dynamicData.periods?.[0]?.classScoreSummaries || base.classScoreSummaries || [];
+    const schoolTotal = dynamicData.periods?.[0]?.schoolTotal || base.schoolTotal || {};
+    return {
+      ...base,
+      scores: allScores.length > 0 ? allScores : (base.scores || []),
+      classScoreSummaries: allSummaries,
+      schoolTotal,
+      teachers: dynamicData.teachers?.length > 0 ? dynamicData.teachers : base.teachers,
+      classStats: dynamicData.classStats?.length > 0 ? dynamicData.classStats : base.classStats,
+      periods: dynamicData.periods?.length > 0 ? dynamicData.periods : (base.periods || []),
+    };
+  }
+  return extractedData;
+}
 
 // ============================================================
 // SMART CONTEXT RETRIEVAL — only send relevant data per query
 // ============================================================
 
 function buildOverview(): string {
-  const total = extractedData.schoolTotal;
-  const classes = extractedData.classStats;
-  const summaries = extractedData.classScoreSummaries;
+  const d = getData();
+  const total = d.schoolTotal;
+  const classes = d.classStats;
+  const summaries = d.classScoreSummaries;
 
   let ctx = `=== TỔNG QUAN TRƯỜNG THCS NGUYỄN BỈNH KHIÊM ===\n`;
   ctx += `Năm học: 2025-2026, Học kỳ 1, Xã Cư M'gar\n`;
-  ctx += `Tổng: ${total?.siSo || 0} HS, ${classes.length} lớp, ${extractedData.teachers.length} GV/NV\n`;
-  ctx += `Nữ: ${total?.nu || 0}, Dân tộc: ${total?.danToc || 0}\n\n`;
+  ctx += `Tổng: ${total?.siSo || 0} HS, ${classes.length} lớp, ${d.teachers.length} GV/NV\n`;
+  ctx += `Nữ: ${(total as any)?.nu || 0}, Dân tộc: ${(total as any)?.danToc || 0}\n\n`;
 
   ctx += `Sĩ số từng lớp:\n`;
   classes.forEach((c: any) => {
@@ -34,8 +65,9 @@ function buildOverview(): string {
 }
 
 function buildTeacherContext(): string {
+  const d = getData();
   let ctx = `=== DANH SÁCH GIÁO VIÊN/NHÂN VIÊN ===\n`;
-  extractedData.teachers.forEach((t: any) => {
+  d.teachers.forEach((t: any) => {
     const parts = [`${t.stt}. ${t.hoTen}`];
     if (t.monDay) parts.push(`Môn: ${t.monDay}`);
     if (t.viTriViecLam) parts.push(`VT: ${t.viTriViecLam}`);
@@ -49,8 +81,9 @@ function buildTeacherContext(): string {
 }
 
 function buildClassScoreContext(classFilter?: string): string {
+  const d = getData();
   let ctx = `=== ĐIỂM CHI TIẾT HỌC SINH ===\n`;
-  let filtered = extractedData.scores;
+  let filtered = d.scores || [];
   if (classFilter) {
     filtered = filtered.filter((s: any) => s.lop?.toUpperCase().includes(classFilter.toUpperCase()));
   }
@@ -75,8 +108,9 @@ function buildClassScoreContext(classFilter?: string): string {
 }
 
 function buildAbsenceContext(): string {
+  const d = getData();
   let ctx = `=== HỌC SINH VẮNG NHIỀU (≥3 buổi) ===\n`;
-  const absent = extractedData.scores
+  const absent = (d.scores || [])
     .filter((s: any) => (s.buoiNghiTong || 0) >= 3)
     .sort((a: any, b: any) => (b.buoiNghiTong || 0) - (a.buoiNghiTong || 0));
   absent.forEach((s: any) => {
@@ -86,8 +120,9 @@ function buildAbsenceContext(): string {
 }
 
 function buildLowScoreContext(): string {
+  const d = getData();
   let ctx = `=== HỌC SINH ĐIỂM THẤP / CHƯA ĐẠT ===\n`;
-  const low = extractedData.scores.filter((s: any) => {
+  const low = (d.scores || []).filter((s: any) => {
     const nums = [s.toan, s.lsDl, s.khtn, s.tin, s.van, s.ngNgu, s.gdcd, s.cNghe]
       .filter((v: any) => typeof v === 'number' && !isNaN(v));
     const avg = nums.length > 0 ? (nums as number[]).reduce((a, b) => a + b, 0) / nums.length : 99;
@@ -103,8 +138,9 @@ function buildLowScoreContext(): string {
 }
 
 function buildTopStudentContext(): string {
+  const d = getData();
   let ctx = `=== HỌC SINH XUẤT SẮC (XL Tốt) ===\n`;
-  const top = extractedData.scores.filter((s: any) => s.ketQuaHocTap === 'Tốt');
+  const top = (d.scores || []).filter((s: any) => s.ketQuaHocTap === 'Tốt');
   top.forEach((s: any) => {
     const nums = [s.toan, s.lsDl, s.khtn, s.tin, s.van, s.ngNgu, s.gdcd, s.cNghe]
       .filter((v: any) => typeof v === 'number' && !isNaN(v));
@@ -115,8 +151,9 @@ function buildTopStudentContext(): string {
 }
 
 function buildWeeklyPlanContext(): string {
+  const d = getData();
   let ctx = `=== KẾ HOẠCH TUẦN ===\n`;
-  extractedData.weeklyPlans.slice(-3).forEach((wp: any) => {
+  (d.weeklyPlans || []).slice(-3).forEach((wp: any) => {
     ctx += `\n--- Tuần ${wp.tuan} (${wp.ngay}) ---\n`;
     wp.noiDung.forEach((line: string) => {
       if (line.trim().length > 5) ctx += `${line}\n`;

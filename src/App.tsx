@@ -2,6 +2,8 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import ChatBox from './components/ChatBox';
+import { DataProvider } from './contexts/DataContext';
+import { defaultPeriodKey } from './data/realData';
 import './App.css';
 
 const MIN_CHAT_WIDTH = 340;
@@ -10,6 +12,7 @@ const DEFAULT_CHAT_WIDTH = 380;
 
 function App() {
   const [selectedClass, setSelectedClass] = useState<string>('all');
+  const [periodKey, setPeriodKey] = useState<string>(defaultPeriodKey);
   const [chatWidth, setChatWidth] = useState<number>(DEFAULT_CHAT_WIDTH);
   const isDragging = useRef(false);
   const startX = useRef(0);
@@ -52,23 +55,25 @@ function App() {
   const isCompact = chatWidth > 500;
 
   return (
-    <div className="app">
-      <Header />
-      <div className="app-content">
-        <div className={`dashboard-panel ${isCompact ? 'compact' : ''}`}>
-          <Dashboard selectedClass={selectedClass} onClassChange={setSelectedClass} />
-        </div>
-        <div
-          className="resize-handle"
-          onMouseDown={handleMouseDown}
-        >
-          <div className="resize-handle-line" />
-        </div>
-        <div className="chat-panel" style={{ width: chatWidth }}>
-          <ChatBox />
+    <DataProvider>
+      <div className="app">
+        <Header />
+        <div className="app-content">
+          <div className={`dashboard-panel ${isCompact ? 'compact' : ''}`}>
+            <Dashboard selectedClass={selectedClass} onClassChange={setSelectedClass} periodKey={periodKey} onPeriodChange={setPeriodKey} />
+          </div>
+          <div
+            className="resize-handle"
+            onMouseDown={handleMouseDown}
+          >
+            <div className="resize-handle-line" />
+          </div>
+          <div className="chat-panel" style={{ width: chatWidth }}>
+            <ChatBox />
+          </div>
         </div>
       </div>
-    </div>
+    </DataProvider>
   );
 }
 

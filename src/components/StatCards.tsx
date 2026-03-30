@@ -1,16 +1,21 @@
 import React from 'react';
-import { totalStudents, getSchoolAvgScore, getStudentsToWatch, totalClasses } from '../data/realData';
+import { getStatCards, totalClasses } from '../data/realData';
+import { useData } from '../contexts/DataContext';
 import Icon from './Icon';
 import './StatCards.css';
 
-const StatCards: React.FC = () => {
-  const avgScore = getSchoolAvgScore();
-  const watchCount = getStudentsToWatch().length;
+interface StatCardsProps {
+  periodKey: string;
+}
+
+const StatCards: React.FC<StatCardsProps> = ({ periodKey }) => {
+  const { data } = useData();
+  const { siSo, absenceStudents, avgScore, watchCount } = getStatCards(periodKey, data.periods);
 
   const cards = [
     {
       icon: 'students',
-      value: totalStudents,
+      value: siSo,
       label: 'Tổng học sinh',
       change: `${totalClasses} lớp`,
       changeType: 'up' as const,
@@ -19,10 +24,10 @@ const StatCards: React.FC = () => {
     },
     {
       icon: 'absent',
-      value: 3,
-      label: 'Vắng hôm nay',
-      subtitle: 'Bình thường',
-      changeType: 'neutral' as const,
+      value: absenceStudents,
+      label: 'Vắng ≥3 buổi',
+      subtitle: absenceStudents > 10 ? 'Cần lưu ý' : 'Bình thường',
+      changeType: absenceStudents > 10 ? 'warn' as const : 'neutral' as const,
       color: '#6366f1',
       bgGradient: 'linear-gradient(135deg, #f0f0ff 0%, #e8e8ff 100%)',
     },
@@ -30,7 +35,7 @@ const StatCards: React.FC = () => {
       icon: 'trending',
       value: avgScore,
       label: 'Điểm TB trường',
-      change: 'HK1',
+      change: '',
       changeType: 'up' as const,
       color: '#0ea5e9',
       bgGradient: 'linear-gradient(135deg, #f0f9ff 0%, #dbeafe 100%)',

@@ -1,97 +1,187 @@
 import extractedData from './extracted_data.json';
 
-// Re-export typed data from the extracted JSON
+// ============================================================
+// TYPES
+// ============================================================
 
+interface ScoreRecord {
+  hoTen?: string;
+  lop?: string;
+  toan?: number | null;
+  lsDl?: number | null;
+  khtn?: number | null;
+  tin?: number | null;
+  van?: number | null;
+  ngNgu?: number | null;
+  gdcd?: number | null;
+  cNghe?: number | null;
+  ketQuaHocTap?: string;
+  ketQuaRenLuyen?: string;
+  buoiNghiPhep?: number;
+  buoiNghiKhongPhep?: number;
+  buoiNghiTong?: number;
+}
+
+interface PeriodData {
+  periodKey: string;
+  periodLabel: string;
+  scores: ScoreRecord[];
+  schoolTotal: { siSo?: number; tot?: number; kha?: number; dat?: number; chuaDat?: number; nu?: number; danToc?: number };
+  classScoreSummaries: { lop: string; siSo: number; tot: number; kha: number; dat: number; chuaDat: number }[];
+}
+
+// ============================================================
+// PERIOD DATA ACCESS
+// ============================================================
+
+export const periods: PeriodData[] = (extractedData as any).periods || [];
 export const teachers = extractedData.teachers;
 export const classStats = extractedData.classStats;
-export const gradeTotals = extractedData.gradeTotals;
-export const schoolTotal = extractedData.schoolTotal;
-export const classScoreSummaries = extractedData.classScoreSummaries;
-export const scores = extractedData.scores;
 export const weeklyPlans = extractedData.weeklyPlans;
 
-// Computed stats
-export const totalStudents = schoolTotal?.siSo || classStats.reduce((s, c) => s + c.siSo, 0);
-export const totalFemale = schoolTotal?.nu || classStats.reduce((s, c) => s + c.nu, 0);
-export const totalEthnic = schoolTotal?.danToc || classStats.reduce((s, c) => s + c.danToc, 0);
+// Available period options for the filter
+export const periodOptions = periods.map(p => ({
+  key: p.periodKey,
+  label: p.periodLabel,
+}));
+
+// Default period key
+export const defaultPeriodKey = periods.length > 0 ? periods[0].periodKey : '';
+
+// Get data for a specific period (accepts optional external periods for dynamic data)
+export function getPeriodData(periodKey: string, externalPeriods?: any[]): PeriodData | undefined {
+  const src = externalPeriods || periods;
+  return src.find((p: any) => p.periodKey === periodKey);
+}
+
+// Get scores for a specific period
+function getScores(periodKey: string, ext?: any[]): ScoreRecord[] {
+  return getPeriodData(periodKey, ext)?.scores || [];
+}
+
+// Get school total for a specific period
+function getSchoolTotal(periodKey: string, ext?: any[]) {
+  return getPeriodData(periodKey, ext)?.schoolTotal || {};
+}
+
+// Get class score summaries for a specific period
+function getClassScoreSummaries(periodKey: string, ext?: any[]) {
+  return getPeriodData(periodKey, ext)?.classScoreSummaries || [];
+}
+
+// Get period options from external data
+export function getPeriodOptions(externalPeriods?: any[]) {
+  const src = externalPeriods || periods;
+  return src.map((p: any) => ({ key: p.periodKey, label: p.periodLabel }));
+}
+
+// ============================================================
+// SHARED (non-period) DATA
+// ============================================================
+
 export const totalClasses = classStats.length;
-export const totalTeachers = teachers.filter(t => t.viTriViecLam === 'Giáo viên').length;
+export const totalTeachers = teachers.filter((t: any) => t.viTriViecLam === 'Giáo viên').length;
 export const totalStaff = teachers.length;
+export const classOnlyStats = classStats.filter((c: any) => !c.tenLop.startsWith('Tổng'));
 
-// Get class-only stats (exclude "Tổng Cộng" rows)
-export const classOnlyStats = classStats.filter(c => !c.tenLop.startsWith('Tổng'));
+// ============================================================
+// PERIOD-AWARE COMPUTED FUNCTIONS
+// ============================================================
 
-// Calculate overall academic performance from score summaries
-export const overallAcademic = classScoreSummaries.reduce(
-  (acc, s) => ({
-    tot: acc.tot + s.tot,
-    kha: acc.kha + s.kha,
-    dat: acc.dat + s.dat,
-    chuaDat: acc.chuaDat + s.chuaDat,
-    total: acc.total + s.tongHS,
-  }),
-  { tot: 0, kha: 0, dat: 0, chuaDat: 0, total: 0 }
-);
+export function getStatCards(periodKey: string, ext?: any[]) {
+  const total = getSchoolTotal(periodKey, ext);
+  const scoresArr = getScores(periodKey, ext);
+  const siSo = total.siSo || scoresArr.length;
 
-// Calculate average score per class
-export function getClassAvgScore(lop: string): number {
-  const classScores = scores.filter(s => s.lop?.toUpperCase() === lop.toUpperCase());
-  if (classScores.length === 0) return 0;
-
+  // Count absence
+  const absenceStudents = scoresArr.filter(s => (s.buoiNghiTong || 0) >= 3).length;
+  // School avg
   let totalSum = 0;
   let count = 0;
-  classScores.forEach(s => {
-    const numericScores = [s.toan, s.lsDl, s.khtn, s.tin, s.van, s.ngNgu, s.gdcd, s.cNghe]
+  scoresArr.forEach(s => {
+    const nums = [s.toan, s.lsDl, s.khtn, s.tin, s.van, s.ngNgu, s.gdcd, s.cNghe]
       .filter(v => typeof v === 'number' && !isNaN(v)) as number[];
-    if (numericScores.length > 0) {
-      totalSum += numericScores.reduce((a, b) => a + b, 0) / numericScores.length;
+    if (nums.length > 0) {
+      totalSum += nums.reduce((a, b) => a + b, 0) / nums.length;
       count++;
     }
   });
-  return count > 0 ? Math.round((totalSum / count) * 10) / 10 : 0;
-}
+  const avgScore = count > 0 ? Math.round((totalSum / count) * 10) / 10 : 0;
 
-// Get school-wide average score
-export function getSchoolAvgScore(): number {
-  let totalSum = 0;
-  let count = 0;
-  scores.forEach(s => {
-    const numericScores = [s.toan, s.lsDl, s.khtn, s.tin, s.van, s.ngNgu, s.gdcd, s.cNghe]
+  // Watch list count
+  const watchCount = scoresArr.filter(s => {
+    const nums = [s.toan, s.lsDl, s.khtn, s.tin, s.van, s.ngNgu, s.gdcd, s.cNghe]
       .filter(v => typeof v === 'number' && !isNaN(v)) as number[];
-    if (numericScores.length > 0) {
-      totalSum += numericScores.reduce((a, b) => a + b, 0) / numericScores.length;
-      count++;
-    }
+    const avg = nums.length > 0 ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
+    return (s.buoiNghiTong || 0) >= 5 || (avg > 0 && avg < 5.0) ||
+      s.ketQuaHocTap === 'Chưa Đạt' || s.ketQuaHocTap === 'Chưa đạt' ||
+      (s.buoiNghiKhongPhep || 0) >= 3;
+  }).length;
+
+  return { siSo, absenceStudents, avgScore, watchCount };
+}
+
+export function getOverallAcademic(periodKey: string, ext?: any[]) {
+  const summaries = getClassScoreSummaries(periodKey, ext);
+  const total = getSchoolTotal(periodKey, ext);
+
+  // Use schoolTotal if available
+  if (total.tot !== undefined) {
+    return {
+      tot: total.tot || 0,
+      kha: total.kha || 0,
+      dat: total.dat || 0,
+      chuaDat: total.chuaDat || 0,
+    };
+  }
+
+  return summaries.reduce(
+    (acc, s) => ({
+      tot: acc.tot + (s.tot || 0),
+      kha: acc.kha + (s.kha || 0),
+      dat: acc.dat + (s.dat || 0),
+      chuaDat: acc.chuaDat + (s.chuaDat || 0),
+    }),
+    { tot: 0, kha: 0, dat: 0, chuaDat: 0 }
+  );
+}
+
+export function getAvgScoreByClass(periodKey: string, ext?: any[]): { khoi: string; classes: { lop: string; avg: number }[] }[] {
+  const scoresArr = getScores(periodKey, ext);
+  const grades = ['6', '7', '8', '9'];
+  return grades.map(g => {
+    const gradeClasses = Array.from(new Set(scoresArr.filter(s => s.lop?.startsWith(g)).map(s => s.lop || ''))).sort();
+
+    const classes = gradeClasses.map(lop => {
+      const classScores = scoresArr.filter(s => s.lop === lop);
+      let totalAvg = 0;
+      let cnt = 0;
+      classScores.forEach(s => {
+        const nums = [s.toan, s.lsDl, s.khtn, s.tin, s.van, s.ngNgu, s.gdcd, s.cNghe]
+          .filter(v => typeof v === 'number' && !isNaN(v)) as number[];
+        if (nums.length > 0) {
+          totalAvg += nums.reduce((a, b) => a + b, 0) / nums.length;
+          cnt++;
+        }
+      });
+      return { lop, avg: cnt > 0 ? Math.round((totalAvg / cnt) * 10) / 10 : 0 };
+    });
+
+    return { khoi: `Khối ${g}`, classes };
   });
-  return count > 0 ? Math.round((totalSum / count) * 10) / 10 : 0;
 }
 
-// Students with high absence
-export function getStudentsHighAbsence(threshold: number = 5) {
-  return scores
-    .filter(s => (s.buoiNghiTong || 0) >= threshold)
-    .sort((a, b) => (b.buoiNghiTong || 0) - (a.buoiNghiTong || 0))
-    .map(s => ({
-      hoTen: s.hoTen || '',
-      lop: s.lop || '',
-      buoiNghiPhep: s.buoiNghiPhep || 0,
-      buoiNghiKhongPhep: s.buoiNghiKhongPhep || 0,
-      buoiNghiTong: s.buoiNghiTong || 0,
-      ketQuaHocTap: s.ketQuaHocTap || '',
-    }));
-}
-
-// Students with low scores (Chưa Đạt or Đạt with low avg)
-export function getStudentsToWatch() {
+export function getStudentsToWatch(periodKey: string, ext?: any[]) {
+  const scoresArr = getScores(periodKey, ext);
   const watchList: any[] = [];
 
-  scores.forEach(s => {
+  scoresArr.forEach(s => {
     const numericScores = [s.toan, s.lsDl, s.khtn, s.tin, s.van, s.ngNgu, s.gdcd, s.cNghe]
       .filter(v => typeof v === 'number' && !isNaN(v)) as number[];
     const avg = numericScores.length > 0
       ? numericScores.reduce((a, b) => a + b, 0) / numericScores.length
       : 0;
-    
+
     const reasons: string[] = [];
     let mucDo: 'Cao' | 'Vừa' = 'Vừa';
 
@@ -123,52 +213,17 @@ export function getStudentsToWatch() {
   });
 }
 
-// Average scores by grade for charts
-export function getAvgScoresByGrade() {
-  const grades = ['6', '7', '8', '9'];
-  return grades.map(g => {
-    const gradeScores = scores.filter(s => s.lop?.startsWith(g));
-    const subjects = ['toan', 'van', 'ngNgu', 'lsDl', 'khtn', 'tin', 'gdcd', 'cNghe'] as const;
-
-    const avgs: Record<string, number> = {};
-    subjects.forEach(subj => {
-      const vals = gradeScores
-        .map(s => (s as any)[subj])
-        .filter(v => typeof v === 'number' && !isNaN(v)) as number[];
-      avgs[subj] = vals.length > 0 ? Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10 : 0;
-    });
-
-    return { khoi: `Khối ${g}`, ...avgs };
-  });
-}
-
-// Average score per class (ĐTB tất cả môn) grouped by grade
-export function getAvgScoreByClass(): { khoi: string; classes: { lop: string; avg: number }[] }[] {
-  const grades = ['6', '7', '8', '9'];
-  return grades.map(g => {
-    const gradeClasses = Array.from(new Set(scores.filter(s => s.lop?.startsWith(g)).map(s => s.lop || ''))).sort();
-
-    const classes = gradeClasses.map(lop => {
-      const classScores = scores.filter(s => s.lop === lop);
-      let totalAvg = 0;
-      let count = 0;
-      classScores.forEach(s => {
-        const nums = [s.toan, s.lsDl, s.khtn, s.tin, s.van, s.ngNgu, s.gdcd, s.cNghe]
-          .filter(v => typeof v === 'number' && !isNaN(v)) as number[];
-        if (nums.length > 0) {
-          totalAvg += nums.reduce((a, b) => a + b, 0) / nums.length;
-          count++;
-        }
-      });
-      return { lop, avg: count > 0 ? Math.round((totalAvg / count) * 10) / 10 : 0 };
-    });
-
-    return { khoi: `Khối ${g}`, classes };
-  });
-}
-
 // Get current/latest weekly plan
 export function getLatestWeeklyPlan() {
   if (weeklyPlans.length === 0) return null;
   return weeklyPlans[weeklyPlans.length - 1];
 }
+
+// ============================================================
+// BACKWARD COMPATIBILITY (default period)
+// ============================================================
+
+export const scores = (extractedData as any).scores || [];
+export const schoolTotal = (extractedData as any).schoolTotal || {};
+export const classScoreSummaries = (extractedData as any).classScoreSummaries || [];
+export const overallAcademic = getOverallAcademic(defaultPeriodKey);
