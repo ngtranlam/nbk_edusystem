@@ -1,9 +1,12 @@
 import { GoogleGenAI } from '@google/genai';
 import extractedData from '../data/extracted_data.json';
 
-// Read API key from environment variable (set in Render dashboard)
-// Fallback to hardcoded key for local development
-const API_KEY = process.env.REACT_APP_GEMINI_API_KEY || 'AIzaSyCU1KGLfTmMOgX05DOSxPbQbg99L2qK2MA';
+// Read API key from environment variable (MUST be set in Render dashboard or .env file)
+const API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
+
+if (!API_KEY) {
+  console.error('REACT_APP_GEMINI_API_KEY is not set. Please configure it in your environment.');
+}
 const MODEL = 'gemini-3-flash-preview';
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
