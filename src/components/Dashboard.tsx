@@ -6,6 +6,7 @@ import StudentWatchList from './StudentWatchList';
 import WeeklyPlanView from './WeeklyPlanView';
 import Icon from './Icon';
 import { useData } from '../contexts/DataContext';
+import { useAuth } from '../contexts/AuthContext';
 import { getPeriodOptions } from '../data/realData';
 import './Dashboard.css';
 
@@ -17,12 +18,13 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ selectedClass, onClassChange, periodKey, onPeriodChange }) => {
+  const { isBGH } = useAuth();
   const { data } = useData();
   const dynPeriodOptions = getPeriodOptions(data.periods);
   const currentLabel = dynPeriodOptions.find((p: { key: string; label: string }) => p.key === periodKey)?.label || '';
 
   return (
-    <div className="dashboard">
+    <div className={`dashboard ${!isBGH ? 'guest-mode' : ''}`}>
       <div className="dashboard-toolbar">
         <div className="toolbar-contact">
           <Icon name="contact" size={14} className="toolbar-contact-icon" />
@@ -65,14 +67,16 @@ const Dashboard: React.FC<DashboardProps> = ({ selectedClass, onClassChange, per
           <AcademicPieChart periodKey={periodKey} />
         </div>
       </div>
-      <div className="dashboard-bottom-row">
-        <div className="bottom-section student-watch">
-          <StudentWatchList periodKey={periodKey} />
+      {isBGH && (
+        <div className="dashboard-bottom-row">
+          <div className="bottom-section student-watch">
+            <StudentWatchList periodKey={periodKey} />
+          </div>
+          <div className="bottom-section weekly-plan">
+            <WeeklyPlanView />
+          </div>
         </div>
-        <div className="bottom-section weekly-plan">
-          <WeeklyPlanView />
-        </div>
-      </div>
+      )}
     </div>
   );
 };

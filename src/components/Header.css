@@ -149,3 +149,102 @@
   font-weight: 500;
   line-height: 1.2;
 }
+
+/* Auth */
+.header-auth {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-role-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 16px;
+  letter-spacing: 0.3px;
+}
+
+.auth-role-badge.bgh {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.auth-role-badge.guest {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.auth-logout-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.auth-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.auth-login-btn {
+  background: white;
+  border: none;
+  color: #e8560a;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.auth-login-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+/* Auth toast */
+.header-toast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 24px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 3000;
+  animation: toastPop 0.3s ease, toastFadeOut 0.4s ease 2.8s forwards;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+}
+
+.header-toast.success {
+  background: #16a34a;
+  color: white;
+}
+
+.header-toast.info {
+  background: #475569;
+  color: white;
+}
+
+@keyframes toastPop {
+  0% { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(0.9); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+@keyframes toastFadeOut {
+  to { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}

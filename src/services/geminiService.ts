@@ -3,7 +3,7 @@ import extractedData from '../data/extracted_data.json';
 
 // Read API key from environment variable (set in Render dashboard)
 // Fallback to hardcoded key for local development
-const API_KEY = process.env.REACT_APP_GEMINI_API_KEY || 'AIzaSyDeinwqke3doGCKwX6-OfpEXqHvARQYFDs';
+const API_KEY = process.env.REACT_APP_GEMINI_API_KEY || 'AIzaSyCU1KGLfTmMOgX05DOSxPbQbg99L2qK2MA';
 const MODEL = 'gemini-3-flash-preview';
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });

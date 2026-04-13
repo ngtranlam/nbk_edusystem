@@ -3,6 +3,7 @@ import Header from './components/Header';
 import Dashboard from './components/Dashboard';
 import ChatBox from './components/ChatBox';
 import { DataProvider } from './contexts/DataContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { defaultPeriodKey } from './data/realData';
 import './App.css';
 
@@ -55,6 +56,7 @@ function App() {
   const isCompact = chatWidth > 500;
 
   return (
+    <AuthProvider>
     <DataProvider>
       <div className="app">
         <Header />
@@ -74,6 +76,7 @@ function App() {
         </div>
       </div>
     </DataProvider>
+    </AuthProvider>
   );
 }
 

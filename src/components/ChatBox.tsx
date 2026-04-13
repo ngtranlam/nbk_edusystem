@@ -5,6 +5,7 @@ import { ChatMessage } from '../types';
 import { sendMessage } from '../services/geminiService';
 import { parseFile } from '../services/fileParser';
 import { useData } from '../contexts/DataContext';
+import { useAuth } from '../contexts/AuthContext';
 import Icon from './Icon';
 import DataManagerModal from './DataManagerModal';
 import './ChatBox.css';
@@ -12,6 +13,7 @@ import './ChatBox.css';
 const ACCEPTED_FORMATS = '.xls,.xlsx,.csv';
 
 const ChatBox: React.FC = () => {
+  const { isBGH } = useAuth();
   const { applyUpload } = useData();
   const [showDataManager, setShowDataManager] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -172,23 +174,25 @@ const ChatBox: React.FC = () => {
             </span>
           </div>
         </div>
-        <div className="chatbox-header-actions">
-          <button
-            className={`chatbox-action-btn ${uploading ? 'uploading' : ''}`}
-            onClick={handleUploadClick}
-            title="Tải lên dữ liệu"
-            disabled={uploading}
-          >
-            {uploading ? <span className="btn-spinner" /> : <Icon name="upload" size={16} />}
-          </button>
-          <button
-            className="chatbox-action-btn"
-            onClick={() => setShowDataManager(true)}
-            title="Quản lý dữ liệu"
-          >
-            <Icon name="database" size={16} />
-          </button>
-        </div>
+        {isBGH && (
+          <div className="chatbox-header-actions">
+            <button
+              className={`chatbox-action-btn ${uploading ? 'uploading' : ''}`}
+              onClick={handleUploadClick}
+              title="Tải lên dữ liệu"
+              disabled={uploading}
+            >
+              {uploading ? <span className="btn-spinner" /> : <Icon name="upload" size={16} />}
+            </button>
+            <button
+              className="chatbox-action-btn"
+              onClick={() => setShowDataManager(true)}
+              title="Quản lý dữ liệu"
+            >
+              <Icon name="database" size={16} />
+            </button>
+          </div>
+        )}
         <input
           ref={uploadInputRef}
           type="file"
